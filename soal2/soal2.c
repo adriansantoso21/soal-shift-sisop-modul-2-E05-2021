@@ -26,12 +26,10 @@ int hewan(int mulai){
 	int b; 
 	int countc = -1;
 	strcpy(jenishewan,"");
-	printf("ini angka mulai hewan= %d\n", mulai);
 	for(b=mulai; b<strlen(panjang); b++){
 		if(panjang[b]==';') {
 			countc++;
 			jenishewan[b]='\0';
-			printf("jenis hewan = %s\n",jenishewan);
 			b +=1;
 			return b;
 		}
@@ -46,12 +44,10 @@ int nama(int mulai){
 	int count=-1;
 	int c;
 	strcpy(namahewan,"");
-	printf("ini angka mulai nama= %d\n", mulai);
 	for(c=mulai; c<strlen(panjang); c++){
 		if(panjang[c]==';'){
 			count++;
 			namahewan[count]='\0';
-			printf("nama hewan = %s\n",namahewan);
 			c +=1;
 			return c;
 		}
@@ -68,32 +64,26 @@ int umur(int mulai){
 	int d;
 	strcpy(umurhewan,"");
 	int pjg = strlen(panjang);
-	printf("ini panjang kalimat= %d\n", pjg);
-	printf("ini angka mulai umur= %d\n", mulai);
 
 	for(d=mulai; d<strlen(panjang)-4; d++){
 		if(panjang[d] == '_'){
 			is_=0;
-			
 			break;
 		}
 		else{
 			counta++;
 			umurhewan[counta] = panjang[d];
-			printf("umur hewan update:%s\n", umurhewan);
 		}
 	}
 
 	counta++;
 	umurhewan[counta]='\0';
-	printf("ini d biasa= %d\n", d);
 	d+=1;
 	return d;
 }
 
 void changename (int mulai){
 	if(panjang[mulai] == '.'){
-		printf("masuk . changename biasa \n");
 		child_id6=fork();
 		if(child_id6==0){
 			while ((wait(&status5)) > 0);
@@ -109,18 +99,17 @@ void changename (int mulai){
 			strcat(namafolder, namahewan);
 			strcat(namafolder, ".jpg");
 			
+			//Soal 2e
 			fp = fopen(keterangan, "a+");
 			fprintf(fp, "nama : %s\numur : %s\n\n",namahewan, umurhewan);
 			fclose(fp);
 			
-			printf("ini angka mulai biasa= %d\n\n", mulai);
 			char *argv[] = {"mv", namafile, namafolder, NULL};
 			execv("/bin/mv", argv);
 		}
 		
 	}
 	else if(panjang[mulai] == '_'){
-		printf("masuk _ changename\n");
 		child_id7=fork();
 		if(child_id7==0){
 			while ((wait(&status6)) > 0);
@@ -136,18 +125,17 @@ void changename (int mulai){
 			strcat(namafolder, namahewan);
 			strcat(namafolder, ".jpg");
 			
+			//Soal 2e
 			fp = fopen(keterangan, "a+");
 			fprintf(fp, "nama : %s\numur : %s\n\n",namahewan, umurhewan);
 			fclose(fp);
 			
-			printf("ini angka mulai _ = %d\n\n", mulai);
 			char *argv[] = {"cp", namafile, namafolder, NULL};
 			execv("/bin/cp", argv);
 		}
 		else {
 			while ((wait(&status7)) > 0);
 			mulai +=1;
-			printf("nilai dari mulai _ = %d\n",mulai);
 			
 			int hewan_ = hewan(mulai);
 			int nama_ = nama(hewan_);
@@ -271,9 +259,6 @@ int main() {
 		      			int animaltype = hewan(0);
 		      			int animalname = nama(animaltype);
 		      			int animalage = umur(animalname);
-		      			printf("animaltype = %d\n", animaltype);
-		      			printf("animalname = %d\n", animalname);
-		      			printf("animalage = %d\n\n", animalage);
 		      			changename(animalage-1); 
 		      		}	
 		      }
