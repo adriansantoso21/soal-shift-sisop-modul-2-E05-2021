@@ -279,8 +279,26 @@ int main()
         }
         else if(strcmp("09-04_22:22", buffer) == 0)
         {
-            char *argc[] = {"zip", "-qrm", "Lopyu_Stevany", "Pyoto", "Musyik", "Fylm", "FOTO", "MUSIK", "FILM", NULL};
-            forkExecWait("/usr/bin/zip", argc);
+            pid_t child1;
+            int statuss;
+
+            child1 = fork();
+            
+            if(child1 < 0)
+            {
+                exit(EXIT_FAILURE);
+            }
+            if(child1 == 0)
+            {
+                char *ar[] = {"rm", "-r", "FOTO", "MUSIK", "FILM", NULL};
+                forkExecWait("/bin/rm", ar);
+            }
+            else
+            {
+                while((wait(&statuss)) > 0);
+                char *argc[] = {"zip", "-r", "Lopyu_Stevany", "Pyoto", "Musyik", "Fylm", NULL};
+                forkExecWait("/usr/bin/zip", argc);
+            }
         }
         sleep(1);
     }
