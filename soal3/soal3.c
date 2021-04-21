@@ -10,15 +10,17 @@
 #include <wait.h>
 #include <time.h>
 
-void createKillerExecutable(char *argv, pid_t sid) {
+void createKillerExecutable(char *argv) {
     FILE *killer_bash = fopen("killer.sh", "w");
 
     fprintf(killer_bash, "#!/bin/bash\n");
     if (strcmp(argv, "-z") == 0) {
-        char *kill_code = "killall -9 ./soal3\n";
-        fprintf(killer_bash, kill_code, sid);
+        char *kill_code = 
+            "killall -9 ./soal3\n";
+        fprintf(killer_bash, kill_code);
     } else if (strcmp(argv, "-x") == 0) {
-        char *kill_code = "kill %d\n";
+        char *kill_code = 
+            "kill %d\n";
         fprintf(killer_bash, kill_code, getpid());
     }
 
@@ -39,6 +41,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+
     pid_t pid, sid,
         child_id, child_id2, child_id3, child_id4;   // Variabel untuk menyimpan PID
 
@@ -56,6 +59,8 @@ int main(int argc, char *argv[]) {
         exit(EXIT_SUCCESS);
     }
 
+    createKillerExecutable(argv[1]);
+
     umask(0);
 
     sid = setsid();
@@ -67,15 +72,14 @@ int main(int argc, char *argv[]) {
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
 
-    createKillerExecutable(argv[1], sid);
-
     while (1) {
+
         time_t rawtime;
         time(&rawtime);
         struct tm *timeinfo  = localtime(&rawtime);
         char folderName[100];
         strftime(folderName, 100, "%Y-%m-%d_%H-%M-%S", timeinfo);
-
+        
         child_id = fork();
         forkExitFailure(child_id);
 
@@ -86,8 +90,7 @@ int main(int argc, char *argv[]) {
         }
 
         // parent 1
-        while (wait(NULL) > 0);
-
+        // while (wait(NULL) > 0);
         child_id2 = fork();
         forkExitFailure(child_id2);
 
@@ -109,7 +112,7 @@ int main(int argc, char *argv[]) {
                     sprintf(pictPath, "%s/%s", folderName, pictName);
                     sprintf(link, "https://picsum.photos/%ld", (rawtime % 1000) + 50);
 
-                    char *argv[] = {"wget", "-O", pictPath, link, NULL};
+                    char *argv[] = {"wget", "-q", "-O", pictPath, link, NULL};
                     execv("/usr/bin/wget", argv);
                 }
 
@@ -146,7 +149,7 @@ int main(int argc, char *argv[]) {
 
                 sprintf(zipName, "%s.zip", folderName);
                 
-                char *argv[] = {"zip", "-r", zipName, folderName, NULL};
+                char *argv[] = {"zip", "-q", "-r", zipName, folderName, NULL};
                 execv("/usr/bin/zip", argv);
                 
             } else {
