@@ -104,12 +104,12 @@ int main()
     {
         // Tulis program kalian di sini
 
-        char buffer[100]; // Mendeklarasikan array text berukuran 100 dengan tipe char
+        //char buffer[100]; // Mendeklarasikan array text berukuran 100 dengan tipe char
         time_t now = time(NULL); // inisialisasi variabel now bertipe time dengan fungsi time dg parameter NULL
         struct tm *t = localtime(&now); // inisialisasi pointer t bertipe struct tm dg fungsi localtime berparameter now(alamat memmori now)
-        strftime(buffer, sizeof(buffer)-1, "%d-%m_%H:%M", t); // nge-breakdown format tipe waktu tm sesuai format yg dispesifikasikan 
+        //strftime(buffer, sizeof(buffer)-1, "%d-%m_%H:%M", t); // nge-breakdown format tipe waktu tm sesuai format yg dispesifikasikan 
 
-        if(strcmp("09-04_16:22", buffer) == 0 && !done)
+        if(t->tm_mday==9 && t->tm_mon+1==4 && t->tm_hour==16 && t->tm_min==22)
         {
             pid_t cid1, cid2, cid3;
             int stat1, stat2, stat3;
@@ -277,7 +277,7 @@ int main()
                 }  
             }
         }
-        else if(strcmp("09-04_22:22", buffer) == 0)
+        else if(t->tm_mday==9 && t->tm_mon+1==4 && t->tm_hour==22 && t->tm_min==22)
         {
             pid_t child1;
             int statuss;
@@ -290,14 +290,15 @@ int main()
             }
             if(child1 == 0)
             {
-                char *ar[] = {"rm", "-r", "FOTO", "MUSIK", "FILM", NULL};
-                forkExecWait("/bin/rm", ar);
+                char *argc[] = {"zip", "-rq", "Lopyu_Stevany.zip", "Pyoto", "Musyik", "Fylm", NULL};
+                execv("/usr/bin/zip", argc);
             }
             else
             {
                 while((wait(&statuss)) > 0);
-                char *argc[] = {"zip", "-r", "Lopyu_Stevany", "Pyoto", "Musyik", "Fylm", NULL};
-                forkExecWait("/usr/bin/zip", argc);
+                char *ag[] = {"find", "/home/nur/sisop/Modul2/Praktikum/", "-mindepth", "1", "-type", "d", "-exec", "rm", "-r", "{}", "+", NULL};
+                if(execv("/usr/bin/find", ag) == -1)
+                    exit(EXIT_FAILURE);
             }
         }
         sleep(1);
