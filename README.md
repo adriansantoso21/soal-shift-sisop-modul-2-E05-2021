@@ -6,6 +6,535 @@
 3. Ahmad Aunul 05111940000164
 
 ### Soal no 1
+Soal ini meminta kami untuk membantu Steven membuat program sebagai berikut:
+**(a)** Membuat beberapa folder dengan nama folder-foldernya adalah **Musyik** untuk mp3, **Fylm** untuk mp4, dan **Pyoto** untuk JPG.
+**(b)** **Mendownload** folder dari masing-masing link yang telah disediakan.
+**(c)** Setiap folder tidak boleh berisikan zip sehingga harus **di-extract** setelah didownload.
+**(d)** Kemudian **memindahkan** file dari masing-masing folder yang telah diextract ke dalam folder yang telah dibuat.
+**(e)** Semua proses berjalan otomatis 6 jam sebelum 9 April pukul 22.22 WIB.
+**(f)** Lalu, pada 9 April pukul 22.22 WIB, semua folder akan **di-zip** dengan nama **Lopyu_Stevany.zip** dan semua folder akan **di-delete** sehingga hanya menyisakan .zip.
+
+Pertama yang harus kita lakukan yaitu membuat kerangka daemon prosesnya terlebih dahulu karena semua program berjalan secara otomatis. Berikut kodenya:
+```
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <syslog.h>
+#include <string.h>
+#include <stdbool.h>
+#include <wait.h>
+#include <dirent.h>
+#include <time.h>
+
+...
+
+int main() 
+{
+    pid_t pid, sid;    // Variabel untuk menyimpan PID
+
+    pid = fork();     // Menyimpan PID dari Child Process
+
+    /* Keluar saat fork gagal
+    * (nilai variabel pid < 0) */
+    if (pid < 0) 
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    /* Keluar saat fork berhasil
+    * (nilai variabel pid adalah PID dari child process) */
+    if (pid > 0) 
+    {
+        exit(EXIT_SUCCESS);
+    }
+
+    umask(0);
+
+    sid = setsid();
+    if (sid < 0) 
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    if ((chdir("/home/nur/sisop/Modul2/Praktikum/")) < 0) 
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+    bool done = false;
+
+    while(1)
+    {
+    
+    	...
+	
+	sleep(1);
+    }
+}
+```
+
+Selanjutnya kita lakukan percabangan pada program utama dengan menggunakan ```if``` agar proses berjalan 6 jam sebelum 9 April pukul 22.22 WIB, yaitu pada 9 April pukul 16.22 WIB. Berikut kodenya:
+```
+if(t->tm_mday==9 && t->tm_mon+1==4 && t->tm_hour==16 && t->tm_min==22)
+{
+    pid_t cid1, cid2, cid3;
+    int stat1, stat2, stat3;
+
+    cid1 = fork();
+
+    if (cid1 < 0)
+    {
+	exit(EXIT_FAILURE); // jika gagal membuat proses baru, maka program akan berhenti
+    }
+    if(cid1 == 0)
+    {
+	cid2 = fork();
+
+	if(cid2 < 0)
+	{
+	    exit(EXIT_FAILURE);
+	}
+	if(cid2 == 0)
+	{
+	    cid3 = fork();
+
+	    if(cid3 < 0)
+	    {
+		exit(EXIT_FAILURE);
+	    }
+	    if(cid3 == 0)
+	    {
+		//make directory
+		char *argv[] = {"mkdir", "-p", "Pyoto", "Musyik", "Fylm", NULL};
+		forkExecWait("/bin/mkdir", argv);
+		_exit(1);
+	    }
+
+	    ...
+
+	}
+
+	...
+
+    }
+
+    ...
+
+}
+```
+
+Fungsi ```forkExecWait``` berisi rangkaian perintah ```fork```, ```exec```, dan ```wait``` yang berjalan bersama. Berikut kodenya:
+```
+void forkExecWait(char *cmd, char *arg[]) 
+{
+    pid_t child_id;
+    int status;
+
+    child_id = fork();
+
+    if (child_id < 0) {
+        exit(EXIT_FAILURE); 
+    }
+
+    if (child_id == 0) {
+        execv(cmd, arg);
+    } else {
+        while ((wait(&status)) > 0);
+        return;
+    }
+}
+```
+
+Setelah folder berhasil dibuat selanjutnya program akan memproses film yang meliputi men-download folder, melakukan unzip, lalu memindahkannya ke folder yang telah dibuat (Fylm). Berikut kodenya:
+```
+if(t->tm_mday==9 && t->tm_mon+1==4 && t->tm_hour==16 && t->tm_min==22)
+{
+    pid_t cid1, cid2, cid3;
+    int stat1, stat2, stat3;
+
+    cid1 = fork();
+
+    if (cid1 < 0)
+    {
+	exit(EXIT_FAILURE); // jika gagal membuat proses baru, maka program akan berhenti
+    }
+    if(cid1 == 0)
+    {
+	cid2 = fork();
+
+	if(cid2 < 0)
+	{
+	    exit(EXIT_FAILURE);
+	}
+	if(cid2 == 0)
+	{
+	    cid3 = fork();
+
+	    if(cid3 < 0)
+	    {
+		exit(EXIT_FAILURE);
+	    }
+	    if(cid3 == 0)
+	    {
+		//make directory
+		...
+	    }
+	    else 
+	    {
+		// memproses film
+		while ((wait(&stat1)) > 0);
+		pid_t child_id1, child_id2;
+		int status1, status2;
+
+		child_id1 = fork();
+
+		if (child_id1 < 0)
+		{
+		    exit(EXIT_FAILURE);
+		}
+		if (child_id1 == 0)
+		{
+		    child_id2 = fork();
+
+		    if (child_id2 < 0)
+		    {
+			exit(EXIT_FAILURE);
+		    }
+		    if (child_id2 == 0)
+		    {
+			// download
+			char *arg1[] = {"wget", "-q", "--no-check-certificate", "https://drive.google.com/uc?id=1ktjGgDkL0nNpY-vT7rT7O6ZI47Ke9xcp&export=download", "-O", "Film_for_Stevany.zip", NULL};
+			execv("/bin/wget", arg1);
+		    }
+		    else
+		    {
+			// unzip
+			while ((wait(&status1)) > 0);
+			sleep(5);
+			char *arg2[] = {"unzip", "-oq", "Film_for_Stevany.zip", NULL};
+			execv("/bin/unzip", arg2);
+		    }
+		}
+		else
+		{
+		    // move
+		    while ((wait(&status2)) > 0);
+		    moveFiles("FILM", "Fylm");
+		}
+		_exit(1);
+	    }
+	}
+
+	...
+
+    }
+
+    ...
+
+}
+```
+
+Kode tersebut berisi serangkaian perintah yang pertama adalah mendownload folder film dari link yang telah disediakan, kemudian melakukan unzip folder hasil download. Pad proses ini terdapat ```sleep(5)``` yang berguna untuk men-delay proses unzip dikarenakan harus menunggu proses download selesai terlebih dahulu. Lalu, untuk memindahkan folder hasil unzip ke folder yang telah dibuat menggunakn fungsi ```moveFiles```. Fungsi tersebut memiliki variabel ```basePath``` yang digunakan untuk menyimpan path dari folder hasil extraxct dan variabel ```dest``` yang digunakan untuk menyimpan path dari folder yang telah dibuat sebelumnya. Berikut kodenya:
+```
+void moveFiles(char *basePath, char *dest)
+{
+    char path[1000];
+    struct dirent *dp;
+    DIR *dir = opendir(basePath);
+
+    if (!dir)
+        return;
+
+    while ((dp = readdir(dir)) != NULL)
+    {
+        if (strcmp(dp->d_name, ".") != 0 && strcmp(dp->d_name, "..") != 0)
+        {
+            strcpy(path, basePath);
+            strcat(path, "/");
+            strcat(path, dp->d_name);
+
+            char *argv[] = {"mv", path, dest, NULL};
+            forkExecWait("/bin/mv", argv);
+        }
+    }
+    closedir(dir);
+}
+```
+
+Setelah proses film selesai dilakukan, selanjutnya program akan memproses musik. Proses yang dilakukan sama dengan proses untuk memproses film yaitu men-download folder musik, melakukan extract terhadap folder yang telah didownload kemudian memindahkannya ke folder yang telah dibuat (Musyik). Berikut kodenya:
+```
+if(t->tm_mday==9 && t->tm_mon+1==4 && t->tm_hour==16 && t->tm_min==22)
+{
+    pid_t cid1, cid2, cid3;
+    int stat1, stat2, stat3;
+
+    cid1 = fork();
+
+    if (cid1 < 0)
+    {
+	exit(EXIT_FAILURE); // jika gagal membuat proses baru, maka program akan berhenti
+    }
+    if(cid1 == 0)
+    {
+	cid2 = fork();
+
+	if(cid2 < 0)
+	{
+	    exit(EXIT_FAILURE);
+	}
+	if(cid2 == 0)
+	{
+	    cid3 = fork();
+
+	    if(cid3 < 0)
+	    {
+		exit(EXIT_FAILURE);
+	    }
+	    if(cid3 == 0)
+	    {
+		//make directory
+		...
+	    }
+	    else 
+	    {
+		// memproses film
+		...
+	    }
+	}
+	else
+	{
+	    // memproses musik
+	    while ((wait(&stat2)) > 0);
+	    pid_t child_id3, child_id4;
+	    int status3, status4;
+
+	    child_id3 = fork();
+
+	    if (child_id3 < 0)
+	    {
+		exit(EXIT_FAILURE);
+	    }
+	    if (child_id3 == 0)
+	    {
+		child_id4 = fork();
+
+		if (child_id4 < 0)
+		{
+		    exit(EXIT_FAILURE);
+		}
+		if (child_id4 == 0)
+		{
+		    // download
+		    char *arg3[] = {"wget", "-q", "--no-check-certificate", "https://drive.google.com/uc?id=1ZG8nRBRPquhYXq_sISdsVcXx5VdEgi-J&export=download", "-O", "Musik_for_Stevany.zip", NULL};
+		    execv("/bin/wget", arg3);
+		}
+		else
+		{
+		    // unzip
+		    while ((wait(&status3)) > 0);
+		    sleep(5);
+		    char *arg4[] = {"unzip", "-oq", "Musik_for_Stevany.zip", NULL};
+		    execv("/bin/unzip", arg4);
+		}
+	    }
+	    else
+	    {
+		// move
+		while ((wait(&status4)) > 0);
+		moveFiles("MUSIK", "Musyik");
+	    }
+	    _exit(1);
+	}
+    }
+}
+```
+
+Selanjutnya program akan memproses foto. Proses yang dilakukan sama dengan proses untuk memproses film dan musik yaitu men-download folder foto, melakukan extract terhadap folder yang telah didownload kemudian memindahkannya ke folder yang telah dibuat (Pyoto). Berikut kodenya:
+```
+if(t->tm_mday==9 && t->tm_mon+1==4 && t->tm_hour==16 && t->tm_min==22)
+{
+    pid_t cid1, cid2, cid3;
+    int stat1, stat2, stat3;
+
+    cid1 = fork();
+
+    if (cid1 < 0)
+    {
+	exit(EXIT_FAILURE); // jika gagal membuat proses baru, maka program akan berhenti
+    }
+    if(cid1 == 0)
+    {
+	cid2 = fork();
+
+	if(cid2 < 0)
+	{
+	    exit(EXIT_FAILURE);
+	}
+	if(cid2 == 0)
+	{
+	    cid3 = fork();
+
+	    if(cid3 < 0)
+	    {
+		exit(EXIT_FAILURE);
+	    }
+	    if(cid3 == 0)
+	    {
+		//make directory
+		...
+	    }
+	    else 
+	    {
+		// memproses film
+		...
+	    }
+	}
+	else
+	{
+	    // memproses musik
+	    ...
+	}
+    }
+    else
+    {
+	// memproses foto
+	while ((wait(&stat3)) > 0);
+	pid_t child_id5, child_id6;
+	int status5, status6;
+
+	child_id5 = fork();
+
+	if (child_id5 < 0)
+	{
+	    exit(EXIT_FAILURE);
+	}
+	if (child_id5 == 0)
+	{
+	    child_id6 = fork();
+
+	    if (child_id6 < 0)
+	    {
+		exit(EXIT_FAILURE);
+	    }
+	    if (child_id6 == 0)
+	    {
+		// download
+		char *arg5[] = {"wget", "-q", "--no-check-certificate", "https://drive.google.com/uc?id=1FsrAzb9B5ixooGUs0dGiBr-rC7TS9wTD&export=download", "-O", "Foto_for_Stevany.zip", NULL};
+		execv("/bin/wget", arg5);
+	    }
+	    else
+	    {
+		// unzip
+		while ((wait(&status5)) > 0);
+		sleep(5);
+		char *arg6[] = {"unzip", "-oq", "Foto_for_Stevany.zip", NULL};
+		execv("/bin/unzip", arg6);
+	    }
+	}
+	else
+	{
+	    // move
+	    while ((wait(&status6)) > 0);
+	    moveFiles("FOTO", "Pyoto");
+	}  
+    }
+}
+```
+	  
+Setelah semua proses pada 9 April pukul 16.22 WIB selesai dilakukan, selanjutnya program akan memproses hasilnya pada 9 April pukul 22.22 WIB. Proses tersebut meliputi melakukan zip terhadap folder Pyoto, Musyik, dan Fylm. Kemudian akan menghapus folder kosong (folder hasil extract yang isinya telah di pindahkan ke folder yang dibuat). Berikut kodenya:
+```
+int main() 
+{
+    pid_t pid, sid;    // Variabel untuk menyimpan PID
+
+    pid = fork();     // Menyimpan PID dari Child Process
+
+    /* Keluar saat fork gagal
+    * (nilai variabel pid < 0) */
+    if (pid < 0) 
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    /* Keluar saat fork berhasil
+    * (nilai variabel pid adalah PID dari child process) */
+    if (pid > 0) 
+    {
+        exit(EXIT_SUCCESS);
+    }
+
+    umask(0);
+
+    sid = setsid();
+    if (sid < 0) 
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    if ((chdir("/home/nur/sisop/Modul2/Praktikum/")) < 0) 
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+
+    bool done = false;
+
+    while(1)
+    {
+        time_t now = time(NULL); // inisialisasi variabel now bertipe time dengan fungsi time dg parameter NULL
+        struct tm *t = localtime(&now); // inisialisasi pointer t bertipe struct tm dg fungsi localtime berparameter now(alamat memmori now)
+
+        ...
+	
+        else if(t->tm_mday==9 && t->tm_mon+1==4 && t->tm_hour==22 && t->tm_min==22)
+        {
+            pid_t child1;
+            int statuss;
+
+            child1 = fork();
+            
+            if(child1 < 0)
+            {
+                exit(EXIT_FAILURE);
+            }
+            if(child1 == 0)
+            {
+                char *argc[] = {"zip", "-rq", "Lopyu_Stevany.zip", "Pyoto", "Musyik", "Fylm", NULL};
+                execv("/usr/bin/zip", argc);
+            }
+            else
+            {
+                while((wait(&statuss)) > 0);
+                char *ag[] = {"find", "/home/nur/sisop/Modul2/Praktikum/", "-mindepth", "1", "-type", "d", "-exec", "rm", "-r", "{}", "+", NULL};
+                if(execv("/usr/bin/find", ag) == -1)
+                    exit(EXIT_FAILURE);
+            }
+        }
+        sleep(1);
+    }
+}
+```
+Untuk menghapus folder pada path, kami menggunakan ```find``` untuk mencari semua yang bertipe ```folder (d)``` kecuali folder path dengan menambahkan argumen ```-mindepth``` dan ```-type```. Kemudian, untuk menghapus folder yang telah ditemukan, kami menambahkan argumen ```-exec``` yang akan akan mengeksekusi ```rm``` secara rekursif.
+
+Hasil yang didapat saat proses 9 April pukul 16.22 WIB selesai dijalankan:
+
+Hasil yang didapat saat proses 9 April pukul 22.22 WIB selesai dijalankan:
+
+Kendala yang dialami saat menyelesaikan soal 1 yaitu:
+- Kesalahan pengimplementasian saat akan mencocokkan tanggal dan waktu sesuai permintaan soal.
+- Kesulitan saat menjalankan banyak child sekaligus.
+- Mengalamai beberapa kesalahan saat mengimplementasikan penggunakaan library ```dirent.h```.
 
 ### Soal no 2
 Loba bekerja di sebuah petshop terkenal, suatu saat dia mendapatkan zip yang berisi banyak sekali foto peliharaan dan Ia diperintahkan untuk mengkategorikan foto-foto peliharaan tersebut. Loba merasa kesusahan melakukan pekerjaanya secara manual, apalagi ada kemungkinan ia akan diperintahkan untuk melakukan hal yang sama. Kamu adalah teman baik Loba dan Ia meminta bantuanmu untuk membantu pekerjaannya.
