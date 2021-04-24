@@ -40,6 +40,9 @@ while ((ep = readdir (dp))) {
     }
 }
 ```
+Gambar bahwa unzip berhasil :
+
+![gambar 2a (unzip)](https://user-images.githubusercontent.com/65168221/115965800-ffa87c80-a554-11eb-8aeb-f91c95ac63e5.jpg)
 
 
 **(b)** Foto peliharaan perlu dikategorikan sesuai jenis peliharaan, maka kamu harus membuat folder untuk setiap jenis peliharaan yang ada dalam zip. Karena kamu tidak mungkin memeriksa satu-persatu, maka program harus membuatkan folder-folder yang dibutuhkan sesuai dengan isi zip.
@@ -87,6 +90,10 @@ for(flag=0; flag<=itrpendek; flag++){
     }
 }
 ```
+
+Gambar bahwa membuat folder dengan nama jenis hewan :
+
+![gambar 2b (bikin folder)](https://user-images.githubusercontent.com/65168221/115965917-79406a80-a555-11eb-8b24-0c3cdf890e6b.jpg)
 
 
 **(c)** Setelah folder kategori berhasil dibuat, programmu akan memindahkan foto ke folder dengan kategori yang sesuai dan di rename dengan nama peliharaan.
@@ -197,10 +204,26 @@ int nama_ = nama(hewan_);
 int umur_ = umur(nama_);
 changename(umur_-1);
 ```
+
+Gambar memasukkan gambar ke dalam folder :
+
+![gambar 2c 2d (masukkan gambar ke folder)](https://user-images.githubusercontent.com/65168221/115965975-9ecd7400-a555-11eb-9557-204e322199d4.jpg)
+
+
 Terakhir, terdapat fungsi untuk menuliskan ke dalam file keterangan.txt menurut format yang ada
 ```
 fp = fopen(keterangan, "a+");
 fprintf(fp, "nama : %s\numur : %s\n\n",namahewan, umurhewan);
 fclose(fp);
  ```
+ 
+ Gambar hasil keterangan.txt :
+ 
+ ![gambar 2e (keterangan txt)](https://user-images.githubusercontent.com/65168221/115965992-c02e6000-a555-11eb-8613-d905adaca159.jpg)
+
+ Kendala yang dialami : 
+ - Kesusahan saat menjalankan banyak child sekaligus
+ - Kesusahan saat mengatasi nama file yang mengandung _ (gambar yang terdiri dari 2 hewan)
+ - Kesusahan saat membaca nama file dimana saya sebelumnya menggunakna strtok dan tidak berhasil sehingga harus membuat fungsi secara manual
+
 ### Soal no 3
