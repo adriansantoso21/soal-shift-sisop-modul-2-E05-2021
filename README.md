@@ -757,4 +757,266 @@ fclose(fp);
  - Kesusahan saat mengatasi nama file yang mengandung _ (gambar yang terdiri dari 2 hewan)
  - Kesusahan saat membaca nama file dimana saya sebelumnya menggunakna strtok dan tidak berhasil sehingga harus membuat fungsi secara manual
 
-### Soal no 3
+### Soal No 3
+
+3. Ranora adalah mahasiswa Teknik Informatika yang saat ini sedang menjalani magang di perusahan ternama yang bernama “FakeKos Corp.”, perusahaan yang bergerak dibidang keamanan data. Karena Ranora masih magang, maka beban tugasnya tidak sebesar beban tugas pekerja tetap perusahaan. Di hari pertama Ranora bekerja, pembimbing magang Ranora memberi tugas pertamanya untuk membuat sebuah program.
+
+> Ranora meminta bantuanmu untuk membantunya dalam membuat program tersebut. Karena kamu anak baik dan rajin menabung, bantulah Ranora dalam membuat program tersebut!
+> Note:
+> - Tidak boleh menggunakan system() dan mkdir()
+> - **Program utama** merupakan **SEBUAH PROGRAM C**
+> - **Wajib** memuat algoritma Caesar Cipher pada program utama yang dibuat
+
+### Soal 3a
+
+**(a)** Ranora harus membuat sebuah program C yang dimana setiap 40 detik membuat sebuah direktori dengan nama sesuai timestamp `[YYYY-mm-dd_HH:ii:ss]`.
+
+### Penjelasan 3a
+
+**Pertama**, soal nomor 3 meminta kita untuk membuat program C menggunakan daemon, sehingga kita perlu menggunakan template daemon dari modul 2 yakni sebagai berikut:
+```c
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <syslog.h>
+#include <string.h>
+
+int main() {
+  pid_t pid, sid;   // Variabel untuk menyimpan PID
+
+  pid = fork();     // Menyimpan PID dari Child Process
+
+  /* Keluar saat fork gagal
+  * (nilai variabel pid < 0) */
+  if (pid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  /* Keluar saat fork berhasil
+  * (nilai variabel pid adalah PID dari child process) */
+  if (pid > 0) {
+    exit(EXIT_SUCCESS);
+  }
+
+  umask(0);
+
+  sid = setsid();
+  if (sid < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  if ((chdir("/")) < 0) {
+    exit(EXIT_FAILURE);
+  }
+
+  close(STDIN_FILENO);
+  close(STDOUT_FILENO);
+  close(STDERR_FILENO);
+
+  while (1) {
+    // Tulis program kalian di sini
+
+    sleep(30);
+  }
+}
+```
+
+**Kedua**, karena soal 3a meminta kita untuk membuat folder setiap 40 detik dengan format nama `[YYYY-mm-dd_HH:ii:ss]` maka kita perlu menggunakan library `<time.h>` untuk mendapatkan waktu sistem dan `<wait.h>` untuk membantu kita dalam mengimplementasikan `fork()`. Implementasinya sebagai berikut:
+```c
+time_t rawtime;
+time(&rawtime);
+struct tm *timeinfo  = localtime(&rawtime);
+char folderName[100];
+strftime(folderName, 100, "%Y-%m-%d_%H-%M-%S", timeinfo);
+```
+> * `rawtime` menyimpan waktu sistem dengan bentuk detik Epoch Unix yang akan diassign oleh `time(&rawtime)`
+> * `timeinfo` menyimpan waktu dengan format yang terstruktur dari `localtime(&rawtime)`
+> * `folderName` adalah buffer untuk menyimpan string dengan format yang dihasilkan dari `strftime` 
+```c
+child_id = fork();
+forkExitFailure(child_id);
+
+// child process 1
+if (child_id == 0) {
+    char *argv[] = {"mkdir", folderName, NULL};
+    execv("/bin/mkdir", argv);
+    // -- end of child process 1 --
+}
+
+...
+
+sleep(40);
+```
+> * Proses melakukan `fork()` dan waktu proses berada di child / `child_id == 0` maka akan membuat direktori menggunakan fungsi `execv`
+> * Setelah itu diakhir akan melakukan sleep selama 40 detik
+
+### Soal 3b
+**(b)** Setiap direktori yang sudah dibuat diisi dengan 10 gambar yang didownload dari https://picsum.photos/, dimana setiap gambar akan didownload setiap 5 detik. Setiap gambar yang didownload akan diberi nama dengan format timestamp `[YYYY-mm-dd_HH:ii:ss]` dan gambar tersebut berbentuk persegi dengan ukuran `(n % 1000) + 50` pixel dimana `n` adalah detik Epoch Unix.
+
+### Penjelasan 3b
+
+**Pertama**, melakukan percabangan `fork()` kedua langsung ketika direktori telah dibuat.
+```c
+// parent process 1
+child_id2 = fork();
+forkExitFailure(child_id2);
+```
+**Kedua**, ketika proses memasuki child process kedua, maka program akan melakukan looping sebanyak 10 iterasi yang tiap loopnya akan melakukan fork() ketiga untuk membuat folder pada child process ketiga dan menunggu 5 detik untuk parent process ketiga.
+
+```c
+// child process 2
+if (child_id2 == 0) {
+    for(int i = 0; i < 10; i++) {
+        
+        child_id3 = fork();
+        forkExitFailure(child_id3);
+        
+        // child process 3
+        if (child_id3 == 0) {
+            char pictName[100], pictPath[200], link[100];
+            
+            // mendapatkan waktu sistem terbaru
+            time(&rawtime);
+            timeinfo = localtime(&rawtime);
+            strftime(pictName, 100, "%Y-%m-%d_%H-%M-%S", timeinfo);
+
+            // membuat string pictPath: path untuk menyimpan foto dan namanya
+            // membuat string link: string untuk menyimpan link download foto dengan ukuran yang ditentukan 
+            sprintf(pictPath, "%s/%s", folderName, pictName);
+            sprintf(link, "https://picsum.photos/%ld", (rawtime % 1000) + 50);
+
+            // mendownload foto dengan fungsi execv() menggunakan wget
+            char *argv[] = {"wget", "-q", "-O", pictPath, link, NULL};
+            execv("/usr/bin/wget", argv);
+            // -- end of child process 3 --
+        }
+
+        // parent process 3
+        sleep(5);
+    }
+    
+    ...
+
+}
+```
+### Soal 3c
+
+**(c)** Setelah direktori telah terisi dengan 10 gambar, program tersebut akan membuat sebuah file “status.txt”, dimana didalamnya berisi pesan “Download Success” yang terenkripsi dengan teknik Caesar Cipher dan dengan shift 5. Caesar Cipher adalah Teknik enkripsi sederhana yang dimana dapat melakukan enkripsi string sesuai dengan shift/key yang kita tentukan. Misal huruf “A” akan dienkripsi dengan shift 4 maka akan menjadi “E”. Karena Ranora orangnya perfeksionis dan rapi, dia ingin setelah file tersebut dibuat, direktori akan di zip dan direktori akan didelete, sehingga menyisakan hanya file zip saja.
+
+### Penjelasan 3c
+
+```c
+// child process 2
+if (child_id2 == 0) {
+
+    ...
+
+    child_id4 = fork();
+    forkExitFailure(child_id4);
+
+    // child process 4
+    if (child_id4 == 0) {
+        char message[100] = "Download Success", zipName[100], txtPath[200];
+        
+        for (int j = 0; j < strlen(message); j++) {
+            if (message[j] >= 'a' && message[j] <= 'z') {
+                message[j] = message[j] - 'a';
+                message[j] = (message[j] + 5) % 26;
+                message[j] = message[j] + 'a';
+            }
+
+            else if (message[j] >= 'A' && message[j] <= 'Z') {
+                message[j] = message[j] - 'A';
+                message[j] = (message[j] + 5) % 26;
+                message[j] = message[j] + 'A';
+            }
+        }
+
+        sprintf(txtPath, "%s/%s", folderName, "status.txt");
+        
+        FILE *txt = fopen(txtPath, "w");
+        fputs(message, txt);
+        fclose(txt);
+
+        sprintf(zipName, "%s.zip", folderName);
+        
+        char *argv[] = {"zip", "-q", "-r", zipName, folderName, NULL};
+        execv("/usr/bin/zip", argv);
+        // -- end of child process 4 --
+    } else {
+
+        // parent process 4
+        while (wait(NULL) > 0);
+    
+        char *argv[] = {"rm", "-r", folderName, NULL};
+        execv("/bin/rm", argv);
+    }
+} 
+```
+
+### Soal 3d
+
+**(d)** Untuk mempermudah pengendalian program, pembimbing magang Ranora ingin program tersebut akan men-generate sebuah program “Killer” yang executable, dimana program tersebut akan menterminasi semua proses program yang sedang berjalan dan akan menghapus dirinya sendiri setelah program dijalankan. Karena Ranora menyukai sesuatu hal yang baru, maka Ranora memiliki ide untuk program “Killer” yang dibuat nantinya harus merupakan **program bash**.
+
+### Penjelasan 3d
+
+```c
+void createKillerExecutable(char *argv) {
+    FILE *killer_bash = fopen("killer.sh", "w");
+
+    fprintf(killer_bash, "#!/bin/bash\n");
+    if (strcmp(argv, "-z") == 0) {
+        char *kill_code = 
+            "killall -9 ./soal3\n";
+        fprintf(killer_bash, kill_code);
+    } else if (strcmp(argv, "-x") == 0) {
+        char *kill_code = 
+            "kill %d\n";
+        fprintf(killer_bash, kill_code, getpid());
+    }
+
+    fclose(killer_bash);
+}
+```
+
+### Soal 3e
+
+**(e)** Pembimbing magang Ranora juga ingin nantinya program utama yang dibuat Ranora dapat dijalankan di dalam dua mode. Untuk mengaktifkan mode pertama, program harus dijalankan dsdengan argumen -z, dan Ketika dijalankan dalam mode pertama, program utama akan langsung menghentikan semua operasinya Ketika program Killer dijalankan. Sedangkan untuk mengaktifkan mode kedua, program harus dijalankan dengan argumen -x, dan Ketika dijalankan dalam mode kedua, program utama akan berhenti namun membiarkan proses di setiap direktori yang masih berjalan hingga selesai (Direktori yang sudah dibuat akan mendownload gambar sampai selesai dan membuat file txt, lalu zip dan delete direktori).
+
+### Penjelasan 3e
+
+```c
+int main(int argc, char *argv[]) {
+    
+    // Return 1 (error) argumen salah
+    if (argc != 2 || (strcmp(argv[1], "-z") != 0 && strcmp(argv[1], "-x") != 0)) {
+        printf("error!\n");
+        return 1;
+    }
+
+    ...
+
+```
+
+```c
+void createKillerExecutable(char *argv) {
+    FILE *killer_bash = fopen("killer.sh", "w");
+
+    fprintf(killer_bash, "#!/bin/bash\n");
+    if (strcmp(argv, "-z") == 0) {
+        char *kill_code = 
+            "killall -9 ./soal3\n";
+        fprintf(killer_bash, kill_code);
+    } else if (strcmp(argv, "-x") == 0) {
+        char *kill_code = 
+            "kill %d\n";
+        fprintf(killer_bash, kill_code, getpid());
+    }
+
+    fclose(killer_bash);
+}
+```
