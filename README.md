@@ -760,11 +760,11 @@ fclose(fp);
 ### Soal No 3
 3. Ranora adalah mahasiswa Teknik Informatika yang saat ini sedang menjalani magang di perusahan ternama yang bernama “FakeKos Corp.”, perusahaan yang bergerak dibidang keamanan data. Karena Ranora masih magang, maka beban tugasnya tidak sebesar beban tugas pekerja tetap perusahaan. Di hari pertama Ranora bekerja, pembimbing magang Ranora memberi tugas pertamanya untuk membuat sebuah program.
 
-> Ranora meminta bantuanmu untuk membantunya dalam membuat program tersebut. Karena kamu anak baik dan rajin menabung, bantulah Ranora dalam membuat program tersebut!
-> Note:
-> - Tidak boleh menggunakan system() dan mkdir()
-> - **Program utama** merupakan **SEBUAH PROGRAM C**
-> - **Wajib** memuat algoritma Caesar Cipher pada program utama yang dibuat
+    > Ranora meminta bantuanmu untuk membantunya dalam membuat program tersebut. Karena kamu anak baik dan rajin menabung, bantulah Ranora dalam membuat program tersebut!
+    > Note:
+    > - Tidak boleh menggunakan system() dan mkdir()
+    > - **Program utama** merupakan **SEBUAH PROGRAM C**
+    > - **Wajib** memuat algoritma Caesar Cipher pada program utama yang dibuat
 
 ### Soal 3a
 
@@ -772,7 +772,7 @@ fclose(fp);
 
 ### Penjelasan 3a
 
-**Pertama**, soal nomor 3 meminta kita untuk membuat program C menggunakan daemon, sehingga kita perlu menggunakan template daemon dari modul 2 yakni sebagai berikut:
+**Pertama**, soal nomor 3 meminta kita untuk membuat program C menggunakan daemon, sehingga kita perlu menggunakan template daemon dari [modul 2](https://github.com/arsitektur-jaringan-komputer/Modul-Sisop/tree/master/2021/Modul2#daftar-isi) yakni sebagai berikut:
 ```c
 #include <sys/types.h>
 #include <sys/stat.h>
