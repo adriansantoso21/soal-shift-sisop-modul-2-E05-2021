@@ -758,7 +758,6 @@ fclose(fp);
  - Kesusahan saat membaca nama file dimana saya sebelumnya menggunakna strtok dan tidak berhasil sehingga harus membuat fungsi secara manual
 
 ### Soal No 3
-
 3. Ranora adalah mahasiswa Teknik Informatika yang saat ini sedang menjalani magang di perusahan ternama yang bernama “FakeKos Corp.”, perusahaan yang bergerak dibidang keamanan data. Karena Ranora masih magang, maka beban tugasnya tidak sebesar beban tugas pekerja tetap perusahaan. Di hari pertama Ranora bekerja, pembimbing magang Ranora memberi tugas pertamanya untuk membuat sebuah program.
 
 > Ranora meminta bantuanmu untuk membantunya dalam membuat program tersebut. Karena kamu anak baik dan rajin menabung, bantulah Ranora dalam membuat program tersebut!
@@ -865,7 +864,7 @@ sleep(40);
 child_id2 = fork();
 forkExitFailure(child_id2);
 ```
-**Kedua**, ketika proses memasuki child process kedua, maka program akan melakukan looping sebanyak 10 iterasi yang tiap loopnya akan melakukan fork() ketiga untuk membuat folder pada child process ketiga dan menunggu 5 detik untuk parent process ketiga.
+**Kedua**, ketika proses memasuki **child process kedua**, maka program akan melakukan looping sebanyak 10 iterasi yang tiap loopnya akan melakukan fork() ketiga untuk membuat folder pada **child process ketiga** dan menunggu 5 detik untuk **parent process ketiga**.
 
 ```c
 // child process 2
@@ -885,7 +884,8 @@ if (child_id2 == 0) {
             strftime(pictName, 100, "%Y-%m-%d_%H-%M-%S", timeinfo);
 
             // membuat string pictPath: path untuk menyimpan foto dan namanya
-            // membuat string link: string untuk menyimpan link download foto dengan ukuran yang ditentukan 
+            // membuat string link: string untuk menyimpan link download foto 
+            // dengan ukuran yang ditentukan 
             sprintf(pictPath, "%s/%s", folderName, pictName);
             sprintf(link, "https://picsum.photos/%ld", (rawtime % 1000) + 50);
 
@@ -909,6 +909,7 @@ if (child_id2 == 0) {
 
 ### Penjelasan 3c
 
+Dilakukan fork sehingga **pada child process keempat** program akan _membuat file status.txt yang berisikan "Download Success"_, kemudian _mengenkripsinya menggunakan algoritma Caesar Cipher dengan shift 5_, dan  _melakukan zip pada folder tersebut_. **Lalu, parent process keempat** akan menunggu child process keempat selesai terlebih dahulu, kemudian _mendelete direktori yang sudah dibuat zipnya_.
 ```c
 // child process 2
 if (child_id2 == 0) {
@@ -922,13 +923,13 @@ if (child_id2 == 0) {
     if (child_id4 == 0) {
         char message[100] = "Download Success", zipName[100], txtPath[200];
         
+        // algoritma caesar cipher shift 5
         for (int j = 0; j < strlen(message); j++) {
             if (message[j] >= 'a' && message[j] <= 'z') {
                 message[j] = message[j] - 'a';
                 message[j] = (message[j] + 5) % 26;
                 message[j] = message[j] + 'a';
             }
-
             else if (message[j] >= 'A' && message[j] <= 'Z') {
                 message[j] = message[j] - 'A';
                 message[j] = (message[j] + 5) % 26;
@@ -936,6 +937,7 @@ if (child_id2 == 0) {
             }
         }
 
+        // membuat file status.txt
         sprintf(txtPath, "%s/%s", folderName, "status.txt");
         
         FILE *txt = fopen(txtPath, "w");
@@ -944,19 +946,29 @@ if (child_id2 == 0) {
 
         sprintf(zipName, "%s.zip", folderName);
         
+        // zip direktori 
         char *argv[] = {"zip", "-q", "-r", zipName, folderName, NULL};
         execv("/usr/bin/zip", argv);
         // -- end of child process 4 --
     } else {
 
         // parent process 4
+        // menunggu child process 4 menjalankan execv()
         while (wait(NULL) > 0);
-    
+
+        // mendelete folder
         char *argv[] = {"rm", "-r", folderName, NULL};
         execv("/bin/rm", argv);
     }
 } 
 ```
+
+> 1. Membuat file status.txt yang berisikan "Download Success", terlebih dahulu kita membuat variable `message` yang sudah diassign `"Download Success"` 
+> 2. Mengenkripsi dengan cara menambahkan +5 ascii dari masing-masing karakter kemudian dimodulus 26 (banyak huruf abjad) agar karakter tidak berubah ke bentuk selain huruf abjad
+> 3. Menyimpan message yang sudah terenkripsi kedalam file `status.txt` dengan terlebih dahulu membuat `txtPath` menggunakan fungsi `sprintf()`.
+> 4. Melakukan zip pada current folder yang sudah dibuat menggunakan `zip -q -r [zipName] [folderName]` yang dieksekusi oleh `execv()`
+> 5. Apabila child process keempat sudah selesai / melakukan `execv()` maka folder yang telah dizip akan dihapus menggunakan `rm -r [folderName]` pada parent process keempat.
+
 
 ### Soal 3d
 
@@ -964,32 +976,58 @@ if (child_id2 == 0) {
 
 ### Penjelasan 3d
 
+Membuat fungsi  `createKillerExecutable(char *argv)` yang akan membuat program bash baru bernama `killer.sh` dengan potongan kode sesuai dengan aragumen yang dipassingkan (`-z` / `-x`)
+
+- Untuk argument `-z`
+    ```bash
+    #!/bin/bash
+    killall -9 ./soal3
+    ```
+    >Program akan menghentikan proses semua proses dengan nama `./soal3` (menghentikan semua proses)
+
+- Untuk argument `-x`
+    ```bash
+    #!/bin/bash
+    kill <pid>
+    ```
+    > `<pid>` yang dikill adalah pid dari child process dari `fork()` yang dilakukan waktu membuat daemon (hanya menghentikan proses pertama, sehingga spawning process selanjutnya masih berjalan hingga folder terzip)
+
+Berikut potongan kode dari `createKillerExecutable`:
 ```c
 void createKillerExecutable(char *argv) {
+    // membuka/membuat file killer.sh
     FILE *killer_bash = fopen("killer.sh", "w");
 
     fprintf(killer_bash, "#!/bin/bash\n");
     if (strcmp(argv, "-z") == 0) {
+        
+        // apabila diberikan argumen "-z"
         char *kill_code = 
             "killall -9 ./soal3\n";
         fprintf(killer_bash, kill_code);
     } else if (strcmp(argv, "-x") == 0) {
+        
+        // apabila diverikan argumen "-x"
         char *kill_code = 
             "kill %d\n";
         fprintf(killer_bash, kill_code, getpid());
     }
 
+    // menutup file killer.sh
     fclose(killer_bash);
 }
 ```
 
 ### Soal 3e
 
-**(e)** Pembimbing magang Ranora juga ingin nantinya program utama yang dibuat Ranora dapat dijalankan di dalam dua mode. Untuk mengaktifkan mode pertama, program harus dijalankan dsdengan argumen -z, dan Ketika dijalankan dalam mode pertama, program utama akan langsung menghentikan semua operasinya Ketika program Killer dijalankan. Sedangkan untuk mengaktifkan mode kedua, program harus dijalankan dengan argumen -x, dan Ketika dijalankan dalam mode kedua, program utama akan berhenti namun membiarkan proses di setiap direktori yang masih berjalan hingga selesai (Direktori yang sudah dibuat akan mendownload gambar sampai selesai dan membuat file txt, lalu zip dan delete direktori).
+**(e)** Pembimbing magang Ranora juga ingin nantinya program utama yang dibuat Ranora dapat dijalankan di dalam dua mode. Untuk mengaktifkan mode pertama, program harus dijalankan dengan argumen -z, dan Ketika dijalankan dalam mode pertama, program utama akan langsung menghentikan semua operasinya Ketika program Killer dijalankan. Sedangkan untuk mengaktifkan mode kedua, program harus dijalankan dengan argumen -x, dan Ketika dijalankan dalam mode kedua, program utama akan berhenti namun membiarkan proses di setiap direktori yang masih berjalan hingga selesai (Direktori yang sudah dibuat akan mendownload gambar sampai selesai dan membuat file txt, lalu zip dan delete direktori).
 
 ### Penjelasan 3e
-
+Untuk membuat mode, kita perlu untuk mengimplementasikan argument pada fungsi `main()` dengan cara menambahkan parameter `int argc, char *argv[]`. Kemudian melakukan pengecekan pada argument yang diberikan agar program hanya menerima argument `-z` atau `-x` saja.
 ```c
+// membuat fungsi main menerima argument dari terminal
+// argc: banyak argument diberikan
+// argv: array dari argument yang diberikan
 int main(int argc, char *argv[]) {
     
     // Return 1 (error) argumen salah
@@ -1001,7 +1039,7 @@ int main(int argc, char *argv[]) {
     ...
 
 ```
-
+Kemudian mengimplementasikan `killer.sh` untuk masing-masing mode seperti yang dijelaskan pada poin [penjelasan 3d](#penjelasan-3d). Berikut potongan kodenya:
 ```c
 void createKillerExecutable(char *argv) {
     FILE *killer_bash = fopen("killer.sh", "w");
@@ -1020,3 +1058,14 @@ void createKillerExecutable(char *argv) {
     fclose(killer_bash);
 }
 ```
+#### Output:
+- Output ketika program dijalankan dengan mode `-z`, kemudian dijalankan `killer.sh`
+    ![output -z](https://image.prntscr.com/image/xwo8yyD0QtmUVZk4Tf0euw.png)
+- Output ketika program dijalankan dengan mode `-x`, kemudian dijalankan `killer.sh`
+    ![output -x](https://image.prntscr.com/image/y40LD-cERseUvoNyflkkmw.png)
+
+#### Kendala yang dialami:
+1. Kebingungan ketika menggunakan `wait(NULL)` pada saat melakukan `fork()` lebih dari satu kali.
+2. File dan folder tidak muncul karena menggunakan shared folder dari windows yang tidak support karakter `:` digunakan untuk nama file dan folder sehingga saya menggantinya dengan karakter `-`
+3. Pada iterasi folder kedua (folder terakhir ketika dijalankan `killer.sh`) ketika folder sudah dibuat program tidak langsung mendownload gambar. Namun, program akan menunggu iterasi pertama selesai (sesudah dizip dan dihapus direktorinya) baru folder iterasi kedua mulai mendownload gambarnya. Hal ini menimbulkan adanya folder kosong ketika proses dihentikan oleh `killer.sh` pada mode `-x`
+4. Pada saat `killer.sh` di-run program tidak dapat menghapus dirinya sendiri dan muncul error "Text file busy". Akhirnya, asisten penguji menginstruksikan agar program killer tidak perlu menghapus dirinya sendiri.
