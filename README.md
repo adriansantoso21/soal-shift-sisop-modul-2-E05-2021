@@ -528,8 +528,10 @@ int main()
 Untuk menghapus folder pada path, kami menggunakan ```find``` untuk mencari semua yang bertipe ```folder (d)``` kecuali folder path dengan menambahkan argumen ```-mindepth``` dan ```-type```. Kemudian, untuk menghapus folder yang telah ditemukan, kami menambahkan argumen ```-exec``` yang akan akan mengeksekusi ```rm``` secara rekursif.
 
 Hasil yang didapat saat proses 9 April pukul 16.22 WIB selesai dijalankan:
+![image](https://drive.google.com/uc?export=view&id=1g_uosAxSrxpHKOcg_b04PQ1aRPay6Ab8)
 
 Hasil yang didapat saat proses 9 April pukul 22.22 WIB selesai dijalankan:
+![image](https://drive.google.com/uc?export=view&id=1RzJdYPc8u3tgruVYDFnQZGe01e6CnbGn)
 
 Kendala yang dialami saat menyelesaikan soal 1 yaitu:
 - Kesalahan pengimplementasian saat akan mencocokkan tanggal dan waktu sesuai permintaan soal.
